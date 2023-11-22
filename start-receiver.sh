@@ -1,0 +1,1 @@
+salsify-receiver --verbose 10002 1280 720

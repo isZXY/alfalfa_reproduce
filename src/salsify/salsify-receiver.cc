@@ -316,6 +316,10 @@ int main( int argc, char *argv[] )
                  complete_states ).sendto( socket, new_fragment.source_address );
 
       auto now = system_clock::now();
+      cerr << "current timestamp:"<<duration_cast<milliseconds>( now.time_since_epoch() ).count()<<endl;
+      cerr << "packet.frame_no:" << packet.frame_no() <<endl;
+      cerr << "packet. fragment_no"  << packet. fragment_no()<<endl;
+      cerr << "avg_delay:" << avg_delay.int_value()  <<endl;
 
       if ( verbose and next_mem_usage_report < now ) {
         cerr << "["
