@@ -455,6 +455,7 @@ int main( int argc, char *argv[] )
         if ( next_cc_update <= system_clock::now() ) {
           const size_t old_quantizer = cc_quantizer;
           cc_rate = 1000 * 1000 * 1400 / avg_delay;
+          cout << "cc_rate:" << cc_rate << endl;
 
           double change_percentage = ( 1.0 * cc_rate - 1.0 * cc_rate_ewma ) /
                                      ( 1.0 * cc_rate_ewma );
@@ -480,7 +481,6 @@ int main( int argc, char *argv[] )
                << "change-percentage="
                << fixed << setprecision( 2 ) << change_percentage
                << endl;
-
           next_cc_update = system_clock::now() + cc_update_interval;
         }
 

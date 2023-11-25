@@ -38,6 +38,7 @@
 #include <thread>
 #include <condition_variable>
 #include <future>
+#include <fstream>
 
 #include "socket.hh"
 #include "packet.hh"
@@ -47,6 +48,7 @@
 #include "display.hh"
 #include "paranoid.hh"
 #include "procinfo.hh"
+#include "logging.hh"
 
 using namespace std;
 using namespace std::chrono;
@@ -136,6 +138,9 @@ void enqueue_frame( FramePlayer & player, const Chunk & frame )
 
 int main( int argc, char *argv[] )
 {
+  /*set logger*/
+  LoggingReceiver loggingreceiver("log.csv");
+
   /* check the command-line arguments */
   if ( argc < 1 ) { /* for sticklers */
     abort();
@@ -216,12 +221,15 @@ int main( int argc, char *argv[] )
     {
       /* wait for next UDP datagram */
       const auto new_fragment = socket.recv();
-
+      loggingreceiver.receive_timestamp = new_fragment.timestamp_us;
       /* parse into Packet */
       const Packet packet { new_fragment.payload };
-
+      loggingreceiver.frame_no = packet.frame_no();
+      loggingreceiver.fragment_no = packet.fragment_no();
+      loggingreceiver.required_next_frame_no =required_next_frame_no(); 
       if ( packet.frame_no() < next_frame_no ) {
         /* we're not interested in this anymore */
+        cerr << "Outdated packet arrived:" << "packet.frame_no()" << "ignore it."<<endl;
         return ResultType::Continue;
       }
       else if ( packet.frame_no() > next_frame_no ) {
@@ -310,16 +318,17 @@ int main( int argc, char *argv[] )
       }
 
       avg_delay.add( new_fragment.timestamp_us, packet.time_since_last() );
-
+      loggingreceiver.time_since_last = packet.time_since_last();
+      loggingreceiver.avg_EWMA_delay = avg_delay.int_value();
       AckPacket( connection_id, packet.frame_no(), packet.fragment_no(),
                  avg_delay.int_value(), current_state,
                  complete_states ).sendto( socket, new_fragment.source_address );
 
       auto now = system_clock::now();
-      cerr << "current timestamp:"<<duration_cast<milliseconds>( now.time_since_epoch() ).count()<<endl;
-      cerr << "packet.frame_no:" << packet.frame_no() <<endl;
-      cerr << "packet. fragment_no"  << packet. fragment_no()<<endl;
-      cerr << "avg_delay:" << avg_delay.int_value()  <<endl;
+      // cerr << "current timestamp:"<<duration_cast<milliseconds>( now.time_since_epoch() ).count()<<endl;
+      // cerr << "packet.frame_no:" << packet.frame_no() <<endl;
+      // cerr << "packet. fragment_no"  << packet. fragment_no()<<endl;
+      // cerr << "avg_delay:" << avg_delay.int_value()  <<endl;
 
       if ( verbose and next_mem_usage_report < now ) {
         cerr << "["
@@ -328,7 +337,8 @@ int main( int argc, char *argv[] )
              << " <mem = " << procinfo::memory_usage() << ">\n";
         next_mem_usage_report = now + 5s;
       }
-
+      loggingreceiver.write_line();
+      loggingreceiver.reset_value();
       return ResultType::Continue;
     },
     [&]() { return not socket.eof(); } )
