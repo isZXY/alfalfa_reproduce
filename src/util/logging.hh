@@ -9,19 +9,12 @@ private:
     std::ofstream logfile;
 
 public:
-    uint64_t receive_timestamp{0};
-    uint32_t frame_no{0};
-    uint16_t fragment_no{0};
-    size_t required_next_frame_no{0};
-    uint32_t time_since_last{0};
-    uint32_t avg_EWMA_delay{0};
-
-//    uint64_t receive_timestamp;
-//    uint32_t frame_no;
-//    uint16_t fragment_no;
-//    size_t required_next_frame_no;
-//    uint32_t time_since_last;
-//    uint32_t avg_EWMA_delay;
+    uint64_t receive_timestamp{-1};
+    uint32_t frame_no{-1};
+    uint16_t fragment_no{-1};
+    size_t required_next_frame_no{-1};
+    uint32_t time_since_last{-1};
+    uint32_t avg_EWMA_delay{-1};
 
     LoggingReceiver(const std::string& filePath);
     ~LoggingReceiver();
