@@ -226,7 +226,7 @@ int main( int argc, char *argv[] )
       const Packet packet { new_fragment.payload };
       loggingreceiver.frame_no = packet.frame_no();
       loggingreceiver.fragment_no = packet.fragment_no();
-      loggingreceiver.required_next_frame_no =required_next_frame_no(); 
+      loggingreceiver.required_next_frame_no =next_frame_no; 
       if ( packet.frame_no() < next_frame_no ) {
         /* we're not interested in this anymore */
         cerr << "Outdated packet arrived:" << "packet.frame_no()" << "ignore it."<<endl;
